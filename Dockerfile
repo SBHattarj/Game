@@ -1,4 +1,5 @@
-FROM gitpod/workspace-full-vnc:latest
+FROM gitpod/workspace-full-vnc:branch-jx-ubuntu-focal
+
 
 # install dependencies
 RUN apt-get update \
