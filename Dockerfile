@@ -7,4 +7,4 @@ RUN apt-get update \
     && apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/* \
     && cd /home/gitpod/.pyenv/plugins/python-build/../.. && git pull && cd - \
     && pyenv install 3.10.2 && pyenv local 3.10.2 \
-    && pip install pygame mypy numpy \
+    && pip install pygame mypy numpy

@@ -2,6 +2,7 @@ import numpy as np
 from numpy import dtype
 from numpy.typing import _SupportsArray, _NestedSequence
 from typing import Iterable, Any
+import math
 
 class Vector(np.ndarray):
     def __new__(cls, items: Iterable):
@@ -15,16 +16,21 @@ class Vector(np.ndarray):
     def sqr_length(self):
         return np.sum(np.square(self))
 
-    
-    
-    def cross(self, other: _SupportsArray[dtype[Any]] | _NestedSequence[_SupportsArray[dtype[Any]]] | Any | _NestedSequence[Any]):
+    def cross(
+        self, 
+        other: 
+            _SupportsArray[dtype[Any]] 
+            | _NestedSequence[_SupportsArray[dtype[Any]]] 
+            | Any 
+            | _NestedSequence[Any]
+    ):
         return np.cross(self, other)
 
     def normalize(self):
         l2 = np.atleast_1d(np.linalg.norm(self))
         if l2 == 0:
             newVector = self.clone()
-            newVector[1] = 1
+            newVector[0] = 1
             return newVector
         if l2 == 1: return self.clone()
         l2[l2==0] = 1
@@ -46,12 +52,23 @@ class Vector(np.ndarray):
         self[:] = new_self
 
     def project(self, other: Iterable[float] | np.ndarray | 'Vector'):
-        return self * self.dot(Vector(other)) / self.dot(self)
+        Other = type(self)(other)
+        return Other * self.dot(Other) / Other.dot(Other)
+    
+    
     
 class Vector2D(Vector):
+
+    Degree = True
+
     def __new__(cls, x: float, y: float):
         return super().__new__(cls, [x, y])
-    
+
+    @classmethod
+    def from_angle(cls, angle: float, length: float = 1):
+        slop = math.tan(math.radians(angle) if cls.Degree else angle)
+        return cls(1, slop).set_length(length)
+
     def clone(self):
         return type(self)(self.x, self.y)
 
@@ -70,6 +87,30 @@ class Vector2D(Vector):
     @y.setter
     def y(self, value: float):
         self[1] = value
+    
+    @property
+    def slope(self):
+        if self.x == self.y == 0: return 0
+        if self.x == 0: return np.inf
+        return self.y / self.x
+
+    def angle_to(self, other: Iterable[float] | 'Vector2D'):
+        if not isinstance(other, Vector2D): other = Vector2D(other[0], other[1])
+        normal_self = self.normalize()
+        normal_other = other.normalize()
+        return np.degrees(np.arccos(normal_self.dot(normal_other))) if self.Degree else np.arccos(normal_self.dot(normal_other))
+        
+    @property
+    def angle(self):
+        if self.Degree: return self.angle_to([1, 0])
+        return self.angle_to([1, 0])
+
+    @angle.setter
+    def angle(self, value: float):
+        newSelf = self.from_angle(value, self.length)
+        self.dtype = newSelf.dtype
+        self[:] = newSelf[:]
+
 
 class Vector3D(Vector):
     def __new__(cls, x: float, y: float, z: float):
@@ -88,6 +129,6 @@ class Vector3D(Vector):
         return self[2]
 
 
-v = Vector([1, 2, 3])
-v.length = 6
-print(v)
+v = Vector2D(-1, 0)
+
+print(v.angle)
